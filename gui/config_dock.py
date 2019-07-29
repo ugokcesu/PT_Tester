@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QDockWidget, QGridLayout, QLabel, QSpinBox,\
-    QDoubleSpinBox, QCheckBox, QPushButton
+    QDoubleSpinBox, QCheckBox, QPushButton, QFrame
 from PyQt5.QtCore import Qt
 
 
@@ -26,6 +26,7 @@ class ConfigDock(QDockWidget):
         self.start_btn = QPushButton("Start Test")
         self.stop_btn = QPushButton("Stop Test")
         self.stop_btn.setDisabled(True)
+        self.stop_btn.setObjectName("stop_btn")
         self.start_text_lb = QLabel("Test Start Time")
         self.start_time_lb = QLabel()
         self.end_text_lb = QLabel("Test End Time")
@@ -35,6 +36,9 @@ class ConfigDock(QDockWidget):
         self.record_pressure_cb.setChecked(True)
         self.record_pressure_cb.setChecked(True)
         self.status_lb = QLabel()
+        self.status_lb.setFrameShape(QFrame.Box)
+        self.status_lb.setFrameStyle(QFrame.Sunken)
+        self.status_lb.setAutoFillBackground(True)
 
         self.layout = QGridLayout()
         self.layout.addWidget(self.duration_lb, 0, 0)

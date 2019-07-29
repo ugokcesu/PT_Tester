@@ -1,22 +1,9 @@
-import sys
 import os
-import time
-from math import ceil
-
 
 from PyQt5.QtWidgets import QMainWindow, QDockWidget, QApplication, QGridLayout, QLabel, QSpinBox,\
     QDoubleSpinBox, QWidget, QCheckBox, QMdiArea, QTableWidget, QTableWidgetItem, QPushButton,\
     QMessageBox, QFrame, QLineEdit, QFileDialog, QSizePolicy
-from PyQt5.QtCore import Qt, QThread, QTime, QTimer, QModelIndex
-from PyQt5.QtGui import QIcon
-
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
-import matplotlib.pyplot as plt
-
-from arduino_worker import ArduinoWorker
-from state import State, StateMessages, StateStyles
-from gui.config_dock import ConfigDock
+from PyQt5.QtCore import Qt
 
 
 class OutfileDock(QDockWidget):
