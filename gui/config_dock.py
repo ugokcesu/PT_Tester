@@ -60,4 +60,4 @@ class ConfigDock(QDockWidget):
 
         self.setObjectName("ConfigurationDock")
         self.setAllowedAreas(Qt.LeftDockWidgetArea)
-        self.setFeatures(QDockWidget.NoDockWidgetFeatures | QDockWidget.DockWidgetClosable)
+        self.setFeatures(QDockWidget.NoDockWidgetFeatures)

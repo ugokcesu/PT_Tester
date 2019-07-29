@@ -1,13 +1,11 @@
 import sys
 import os
-import time
 from math import ceil
 
-
 from PyQt5.QtWidgets import QMainWindow, QApplication, \
-    QDoubleSpinBox, QWidget, QCheckBox, QMdiArea, QTableWidget, QTableWidgetItem, QPushButton,\
-    QMessageBox, QFrame, QLineEdit, QFileDialog, QSizePolicy
-from PyQt5.QtCore import Qt, QThread, QTime, QTimer, QModelIndex
+     QWidget, QMdiArea, QTableWidgetItem,\
+    QMessageBox, QFileDialog, QSizePolicy
+from PyQt5.QtCore import Qt, QThread, QTime, QTimer
 from PyQt5.QtGui import QIcon
 
 import matplotlib.pyplot as plt
@@ -18,7 +16,7 @@ from gui.config_dock import ConfigDock
 from gui.outfile_dock import OutfileDock
 from gui.table_widget import TableWidget
 from gui.plot_windows import PlotWindow
-from sample import SampleTypes, SampleNames
+from sample import SampleTypes, SampleNames, Sample
 
 __version__ = "1.0.0"
 
@@ -30,7 +28,7 @@ class MainWindow(QMainWindow):
 
         # TODO where should I put these?
         self.column_order = [SampleTypes.Time, SampleTypes.Pressure, SampleTypes.Temperature]
-        self.recording_types_requested = []
+        self.sample_types_requested_ordered = []
         self.delimiter = ','
 
         self.ran_once = False
@@ -41,6 +39,7 @@ class MainWindow(QMainWindow):
         self.test_state = State.ReadyNotRan
         self.output_file = None
         self.ax = None
+        self.ax_secondaries = dict()
 
         # CONFIG DOCK
         self.config_dock = ConfigDock("Test Options", self)
@@ -77,10 +76,18 @@ class MainWindow(QMainWindow):
         plt.ion()
         self.plot_window.figure.clear()
         self.ax = self.plot_window.figure.add_subplot(111)
+        self.ax.set_ylabel(SampleNames.names[self.sample_types_requested_ordered[0]])
+        if len(self.sample_types_requested_ordered) > 1:
+            for sample_type in self.sample_types_requested_ordered[1:]:
+                self.ax_secondaries[sample_type] = self.ax.twinx()
+                self.ax_secondaries[sample_type].set_ylabel(SampleNames.names[sample_type])
 
-    def plot_sample(self, x, y):
+    def plot_sample(self, current_time, sample):
         # TODO why doesn't it show the line?
-        self.ax.plot(x, y, color='blue', marker='.', linewidth='2', linestyle='-')
+        self.ax.plot(current_time, sample.values[self.sample_types_requested_ordered[0]], color='blue', marker='.', linewidth='2', linestyle='-')
+
+        for sample_type in self.sample_types_requested_ordered[1:]:
+            self.ax_secondaries[sample_type].plot(current_time, sample.values[sample_type], color='red', marker='x')
 
     def select_folder(self):
         path = self.outfile_path_le.text()
@@ -111,7 +118,7 @@ class MainWindow(QMainWindow):
                         QMessageBox.Ok)
             return
         # check if there is already a test in progress
-        if self.test_state==State.InProgress:
+        if self.test_state == State.InProgress:
             return
         # worker thread will check connection, not done here
         # if test(s) were run before, table may contain data
@@ -127,16 +134,28 @@ class MainWindow(QMainWindow):
         if not self.is_out_file_ok():
             return
         # if here, test can begin
-        self.recording_types_requested = [SampleTypes.Time]
-        if record_p:
-            self.recording_types_requested.append(SampleTypes.Pressure)
-        if record_t:
-            self.recording_types_requested.append(SampleTypes.Temperature)
+        self.sample_types_requested_ordered = []
+        for samp_type in self.column_order:
+            if samp_type == SampleTypes.Pressure and record_p:
+                self.sample_types_requested_ordered.append(SampleTypes.Pressure)
+            if samp_type == SampleTypes.Temperature and record_t:
+                self.sample_types_requested_ordered.append(SampleTypes.Temperature)
 
         self.initialize_table()
+        self.initialize_file()
         self.initialize_plot()
 
         # set up arduino worker and signal-slots
+        self.initialize_worker(nb_samples, record_p, record_t, sample_rate)
+        # reading of measurements starts here
+        self.arduino_thread.start()
+
+        # gui updates
+        # timer is started by worker thread, not here
+        # update_gui called by update_status
+        self.update_status(State.InProgress)
+
+    def initialize_worker(self, nb_samples, record_p, record_t, sample_rate):
         self.arduino_worker = ArduinoWorker(sample_rate, nb_samples, record_p, record_t)
         self.arduino_thread = QThread()
         self.arduino_worker.moveToThread(self.arduino_thread)
@@ -145,12 +164,6 @@ class MainWindow(QMainWindow):
         self.arduino_worker.timer_start.connect(self.update_test_timers)
         self.config_dock.stop_btn.clicked.connect(self.arduino_thread.requestInterruption)
         self.arduino_worker.stopped.connect(self.stop_test)
-        self.arduino_thread.start()
-
-        # gui updates
-        # timer is started by worker thread, not here
-        # update_gui called by update_status
-        self.update_status(State.InProgress)
 
     def update_gui(self, test_state):
         if test_state == State.ReadyNotRan:
@@ -174,7 +187,7 @@ class MainWindow(QMainWindow):
         file = self.outfile_dock.name_le.text().strip()
         full_path = os.path.join(path, file)
         if os.path.isfile(full_path):
-            choice = QMessageBox.question(self, "File Exists", "File {} exists, do you want to overwrite?"\
+            choice = QMessageBox.question(self, "File Exists", "File {} exists, do you want to overwrite?"
                                           .format(full_path), QMessageBox.Yes | QMessageBox.No)
             if choice == QMessageBox.No:
                 self.output_file = None
@@ -182,7 +195,7 @@ class MainWindow(QMainWindow):
         try:
             self.output_file = open(full_path, "w")
         except Exception as e:
-            QMessageBox.critical(self, "Output File Error", "Cannot create/overwrite file, error message is:\n"\
+            QMessageBox.critical(self, "Output File Error", "Cannot create/overwrite file, error message is:\n"
                                  + str(e))
             self.output_file = None
             return False
@@ -195,41 +208,54 @@ class MainWindow(QMainWindow):
         self.config_dock.end_time_lb.setText(end_time.toString("hh:mm:ss"))
 
     def initialize_table(self):
-        number_of_columns = len(self.recording_types_requested)
+        number_of_columns = len(self.sample_types_requested_ordered) + 1 # +1 for time
         number_of_samples = ceil(self.config_dock.duration_sb.value() / self.config_dock.sampling_dsb.value())
         self.table_view_tbl.setColumnCount(number_of_columns)
         self.table_view_tbl.setRowCount(number_of_samples)
         headers = []
-        for sample_type in self.column_order:
-            if sample_type in self.recording_types_requested:
-                headers.append(SampleNames.names[sample_type])
+        headers.append(SampleNames.names[SampleTypes.Time])
+        for sample_type in self.sample_types_requested_ordered:
+            headers.append(SampleNames.names[sample_type])
         self.table_view_tbl.setHorizontalHeaderLabels(headers)
         self.table_view_tbl.clearContents()
         self.current_row = 0
 
-    def process_sample(self, pressure, temperature):
+    def initialize_file(self):
+
+        headers = []
+        headers.append(SampleNames.names[SampleTypes.Time])
+        for sample_type in self.sample_types_requested_ordered:
+            headers.append(SampleNames.names[sample_type])
+        for index, header in enumerate(headers):
+            self.output_file.write(header)
+            if index != len(headers)-1:
+                self.output_file.write(self.delimiter)
+        self.output_file.write("\n")
+
+    def process_sample(self, sample):
         current_time = self.current_row * self.config_dock.sampling_dsb.value()
-        col = 0
-        for recording_type in self.column_order:
-            if recording_type in self.recording_types_requested:
-                if recording_type == SampleTypes.Time:
-                    value = current_time
-                elif recording_type == SampleTypes.Pressure:
-                    value = pressure
-                elif recording_type == SampleTypes.Temperature:
-                    value = temperature
-                self.table_view_tbl.setItem(self.current_row, col,
-                                            QTableWidgetItem("{:.2f}".format(value)))
-                col += 1
+
+        self.print_sample_qtable(current_time, sample)
+        self.print_sample_csv(current_time, sample)
+        self.plot_sample(current_time, sample)
 
         self.table_view_tbl.selectRow(self.current_row)
         self.current_row += 1
 
-        self.print_sample(current_time, pressure)
-        self.plot_sample(current_time,pressure)
+    def print_sample_qtable(self, current_time, sample):
+        self.table_view_tbl.setItem(self.current_row, 0,
+                                    QTableWidgetItem("{:.2f}".format(current_time)))
+        for i, sample_type in enumerate(self.sample_types_requested_ordered, start=1):
+            self.table_view_tbl.setItem(self.current_row, i,
+                                        QTableWidgetItem("{:.2f}".format(sample.values[sample_type])))
 
-    def print_sample(self, current_time, pressure):
-        self.output_file.write(str(current_time) + self.outfile_dock.delimiter + str(pressure) + "\n")
+    def print_sample_csv(self, current_time, sample):
+        self.output_file.write("{:.2f}".format(current_time) + self.delimiter)
+        for index, sample_type in enumerate(self.sample_types_requested_ordered):
+            self.output_file.write("{:.2f}".format(sample.values[sample_type]))
+            if index != len(self.sample_types_requested_ordered)-1:
+                self.output_file.write(self.delimiter)
+        self.output_file.write("\n")
 
     def stop_test(self, state):
         if self.test_state == State.InProgress:

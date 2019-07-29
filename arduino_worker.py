@@ -4,11 +4,12 @@ from PyQt5.QtCore import QObject, QThread
 from PyQt5.QtCore import pyqtSignal
 from pyfirmata import Arduino, util
 from state import State
+from sample import Sample, SampleTypes
 
 class ArduinoWorker(QObject):
 
     timer_start = pyqtSignal()
-    sample_received = pyqtSignal(float, float)
+    sample_received = pyqtSignal(Sample)
     stopped = pyqtSignal(State)
 
     def __init__(self, delay, samples, record_pressure, record_temp):
@@ -43,8 +44,8 @@ class ArduinoWorker(QObject):
         self.timer_start.emit()
 
         counter = 0
-        pressure = -999
-        temp = -999
+        pressure = Sample.NDV
+        temp = Sample.NDV
         while counter != self.number_of_samples:
             sleep(self.delay)
             if self.record_pressure:
@@ -52,9 +53,9 @@ class ArduinoWorker(QObject):
 
             if self.record_temp:
                 temp = (temp_pin.read() * 5) * 212 / 4 + 32 + self.CORRECTION
-
+            # TODO put logger here
             print(pressure, temp)
-            self.sample_received.emit(pressure, temp)
+            self.sample_received.emit(Sample(pressure, temp))
             if current_thread.isInterruptionRequested():
                 interrupted_flag = True
                 break

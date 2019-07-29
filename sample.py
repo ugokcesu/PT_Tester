@@ -15,6 +15,10 @@ class SampleNames:
 
 
 class Sample:
-    def __init__(self, sample_type, value):
-        self.type = sample_type
-        self.value = value
+    NDV = -99999
+
+    def __init__(self, p, t):
+        self.values = dict()
+        self.values[SampleTypes.Pressure] = p
+        self.values[SampleTypes.Temperature] = t
+

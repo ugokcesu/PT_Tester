@@ -1,6 +1,4 @@
 import enum
-from PyQt5.QtGui import QPalette
-from PyQt5.QtCore import Qt
 
 
 class State (enum.Enum):

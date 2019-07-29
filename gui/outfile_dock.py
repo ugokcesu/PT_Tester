@@ -1,8 +1,6 @@
 import os
 
-from PyQt5.QtWidgets import QMainWindow, QDockWidget, QApplication, QGridLayout, QLabel, QSpinBox,\
-    QDoubleSpinBox, QWidget, QCheckBox, QMdiArea, QTableWidget, QTableWidgetItem, QPushButton,\
-    QMessageBox, QFrame, QLineEdit, QFileDialog, QSizePolicy
+from PyQt5.QtWidgets import QDockWidget, QGridLayout, QPushButton, QLineEdit
 from PyQt5.QtCore import Qt
 
 
@@ -12,7 +10,7 @@ class OutfileDock(QDockWidget):
 
         self.setObjectName("OutputDock")
         self.setAllowedAreas(Qt.LeftDockWidgetArea)
-        self.setFeatures(QDockWidget.NoDockWidgetFeatures | QDockWidget.DockWidgetClosable)
+        self.setFeatures(QDockWidget.NoDockWidgetFeatures)
 
         self.path_le = QLineEdit(os.path.expanduser("~"))
         self.browse_btn = QPushButton("Select Folder")

@@ -8,4 +8,3 @@ class TableWidget(QTableWidget):
         self.setColumnCount(2)
         self.setRowCount(10)
         self.setAlternatingRowColors(True)
-
