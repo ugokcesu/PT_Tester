@@ -1,7 +1,8 @@
 from PyQt5.QtWidgets import QDockWidget, QGridLayout, QLabel, QSpinBox,\
-    QDoubleSpinBox, QCheckBox, QPushButton, QFrame
+    QDoubleSpinBox, QCheckBox, QPushButton, QFrame, QComboBox
 from PyQt5.QtCore import Qt
 
+from gui.color_picker_square import ColorPickerSquare
 
 class ConfigDock(QDockWidget):
     def __init__(self, name, parent):
@@ -32,7 +33,13 @@ class ConfigDock(QDockWidget):
         self.end_text_lb = QLabel("Test End Time")
         self.end_time_lb = QLabel()
         self.record_pressure_cb = QCheckBox("Record Pressure")
+        self.pressure_color = ColorPickerSquare(color_name="blue")
+        self.pressure_marker = QComboBox()
+        self.pressure_marker.addItems([".", "o", "v", "^", "s"])
         self.record_temp_cb = QCheckBox("Record Temperature")
+        self.temperature_color = ColorPickerSquare(color_name="green")
+        self.temp_marker = QComboBox()
+        self.temp_marker.addItems([".", "o", "v", "^", "s"])
         self.record_pressure_cb.setChecked(True)
         self.record_pressure_cb.setChecked(True)
         self.status_lb = QLabel()
@@ -48,14 +55,18 @@ class ConfigDock(QDockWidget):
         self.layout.addWidget(self.sampling_dsb, 1, 1)
         self.layout.addWidget(self.sampling_unit_lb, 1, 2)
         self.layout.addWidget(self.record_pressure_cb, 2, 0)
-        self.layout.addWidget(self.record_temp_cb, 2, 1)
-        self.layout.addWidget(self.start_btn, 3, 0)
-        self.layout.addWidget(self.stop_btn, 3, 1)
-        self.layout.addWidget(self.start_text_lb, 4, 0)
-        self.layout.addWidget(self.start_time_lb, 4, 1)
-        self.layout.addWidget(self.end_text_lb, 5, 0)
-        self.layout.addWidget(self.end_time_lb, 5, 1)
-        self.layout.addWidget(self.status_lb, 6, 0, 1, 2)
+        self.layout.addWidget(self.pressure_color, 2, 1)
+        self.layout.addWidget(self.pressure_marker, 2, 2)
+        self.layout.addWidget(self.record_temp_cb, 3, 0)
+        self.layout.addWidget(self.temperature_color, 3, 1)
+        self.layout.addWidget(self.temp_marker, 3, 2)
+        self.layout.addWidget(self.start_btn, 4, 0)
+        self.layout.addWidget(self.stop_btn, 4, 1)
+        self.layout.addWidget(self.start_text_lb, 5, 0)
+        self.layout.addWidget(self.start_time_lb, 5, 1)
+        self.layout.addWidget(self.end_text_lb, 6, 0)
+        self.layout.addWidget(self.end_time_lb, 6, 1)
+        self.layout.addWidget(self.status_lb, 7, 0, 1, 2)
         self.layout.setAlignment(Qt.AlignTop)
 
         self.setObjectName("ConfigurationDock")

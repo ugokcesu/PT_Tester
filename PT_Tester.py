@@ -31,6 +31,7 @@ class MainWindow(QMainWindow):
         self.sample_types_requested_ordered = []
         self.delimiter = ','
 
+
         self.ran_once = False
         self.current_row = 0
         self.setWindowTitle("P-T Tester")
@@ -40,6 +41,7 @@ class MainWindow(QMainWindow):
         self.output_file = None
         self.ax = None
         self.ax_secondaries = dict()
+        self.plot_colors = dict()
 
         # CONFIG DOCK
         self.config_dock = ConfigDock("Test Options", self)
@@ -74,29 +76,39 @@ class MainWindow(QMainWindow):
 
     def initialize_plot(self):
         plt.ion()
+        self.plot_colors[SampleTypes.Pressure] = self.config_dock.pressure_color.name
+        self.plot_colors[SampleTypes.Temperature] = self.config_dock.temperature_color.name
         self.plot_window.figure.clear()
         self.ax = self.plot_window.figure.add_subplot(111)
-        self.ax.set_ylabel(SampleNames.names[self.sample_types_requested_ordered[0]])
+        self.ax.set_ylabel(SampleNames.names[self.sample_types_requested_ordered[0]],
+                           color=self.plot_colors[self.sample_types_requested_ordered[0]])
         if len(self.sample_types_requested_ordered) > 1:
             for sample_type in self.sample_types_requested_ordered[1:]:
                 self.ax_secondaries[sample_type] = self.ax.twinx()
-                self.ax_secondaries[sample_type].set_ylabel(SampleNames.names[sample_type])
+                self.ax_secondaries[sample_type].set_ylabel(SampleNames.names[sample_type],
+                                                            color=self.plot_colors[sample_type])
 
     def plot_sample(self, current_time, sample):
-        # TODO why doesn't it show the line?
-        self.ax.plot(current_time, sample.values[self.sample_types_requested_ordered[0]], color='blue', marker='.', linewidth='2', linestyle='-')
+        # TODO why doesn't it show the line?, only markers are shown.
+        marker = dict()
+        marker[SampleTypes.Pressure] = self.config_dock.pressure_marker.currentText()
+        marker[SampleTypes.Temperature] = self.config_dock.temp_marker.currentText()
+        self.ax.plot(current_time, sample.values[self.sample_types_requested_ordered[0]],
+                     color=self.plot_colors[self.sample_types_requested_ordered[0]],
+                     marker=marker[self.sample_types_requested_ordered[0]], linewidth='2', linestyle='-')
 
         for sample_type in self.sample_types_requested_ordered[1:]:
-            self.ax_secondaries[sample_type].plot(current_time, sample.values[sample_type], color='red', marker='x')
+            self.ax_secondaries[sample_type].plot(current_time, sample.values[sample_type],\
+                                                  color=self.plot_colors[sample_type], marker=marker[sample_type])
 
     def select_folder(self):
-        path = self.outfile_path_le.text()
+        path = self.outfile_dock.path_le.text()
         if not os.path.isdir(path):
             path = os.path.expanduser("~")
 
         dir = QFileDialog.getExistingDirectory(self, "Select Working Folder", path)
         if os.path.isdir(dir):
-            self.outfile_path_le.setText(dir)
+            self.outfile_dock.path_le.setText(dir)
 
     def start_test(self):
         # is at least 1 type of reading set
