@@ -3,7 +3,7 @@ A python program with a pyqt interface for reading pressure and temperature data
 plotting it on a graph and table as well as storing the data in a csv file.
 
 # Running the Code
-Check out <a href="https://www.youtube.com/watch?v=2KEuVRwzcRc"> this youtube video </a> for a short demo, then follow 
+Check out <a href="https://youtu.be/VpyWUxri6Gs"> this youtube video </a> for a short demo, then follow 
 the <b>Installation Notes</b>.
 
 # Installation Notes 
