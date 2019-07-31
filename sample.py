@@ -10,8 +10,8 @@ class SampleTypes(enum.Enum):
 class SampleNames:
     names = dict()
     names[SampleTypes.Time] = "Time"
-    names[SampleTypes.Pressure] = "Pressure"
-    names[SampleTypes.Temperature] = "Temperature"
+    names[SampleTypes.Pressure] = "Pressure (psi)"
+    names[SampleTypes.Temperature] = "Temperature (F)"
 
 
 class Sample:
