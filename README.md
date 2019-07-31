@@ -20,3 +20,6 @@ The Arduino is now ready to send receive data through pyfirmata python module
 
 ## Finally:
 run <b>main.py</b>
+
+# Screenshots
+
