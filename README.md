@@ -1,12 +1,17 @@
 # PT_Tester
 A python program with a pyqt interface for reading pressure and temperature data from arduino and
-plotting it on a graph and table as well as storing the data in a csv file.
+plotting it on a graph and table as well as storing the data in a csv file. Check out <a href="https://youtu.be/VpyWUxri6Gs"> this youtube video</a> for a short demo
 
-# Running the Code
-Check out <a href="https://youtu.be/VpyWUxri6Gs"> this youtube video </a> for a short demo, then follow 
-the <b>Installation Notes</b>.
+<b> Features</b>
+<ul> 
+  <li>The plot, table, and the csv file are interactively filled as each sample is recorded.</li>
+<li>The arduino connection is done in a seperate thread so that the GUI remains active for manipulating the plot and table.</li>
+  <li>While taking recordings, the software can detect whether the arduino was disconnected or if the stop button was pressed, and terminates the second thread gracefully.</li>
 
-# Installation Notes 
+# Screenshots
+<img src="Screen Shot 1.png"> </img>
+
+# Running the Code / Installation Notes 
 ## For Python
 See requirements.txt for a full list of modules and corresponding versions. The Anaconda environment makes the list bloated,
 mainly, the libraries used are <b>pyfirmata</b> for connecting to the Arduino, <b>PyQt5</b> for the graphical interface and <b>matplotlib</b> for plotting the graph.
@@ -21,5 +26,3 @@ The Arduino is now ready to send receive data through pyfirmata python module
 ## Finally:
 run <b>main.py</b>
 
-# Screenshots
-<img src="Screen Shot 1.png"> </img>
