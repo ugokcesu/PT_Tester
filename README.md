@@ -13,10 +13,7 @@ plotting it on a graph and table as well as storing the data in a csv file. Chec
 
 # Running the Code / Installation Notes 
 ## For Python
-See requirements.txt for a full list of modules and corresponding versions. The Anaconda environment makes the list bloated,
-mainly, the libraries used are <b>pyfirmata</b> for connecting to the Arduino, <b>PyQt5</b> for the graphical interface and <b>matplotlib</b> for plotting the graph.
-
-To install all packages run <code>pip install -r requirements.txt</code>
+See requirements.txt for a full list of modules and corresponding versions. Mainly, the libraries used are <b>pyfirmata</b> for connecting to the Arduino, <b>PyQt5</b> for the graphical interface and <b>matplotlib</b> for plotting the graph.
 
 ## For Arduino
 From the Arduino utility go to <b>File > Examples > Firmata > StandardFirmata</b> and upload it onto your Arduino.
