@@ -1,6 +1,6 @@
 # PT_Tester
 A python program with a pyqt interface for reading pressure and temperature data from arduino and
-plotting it on a graph and table as well as storing the data in a csv file. Check out <a href="https://youtu.be/VpyWUxri6Gs"> this youtube video</a> for a short demo
+plotting it on a graph and table as well as storing the data in a csv file. Check out <a href="https://youtu.be/STYHo8Lq0Qw"> this youtube video</a> for a short demo
 
 <b> Features</b>
 <ul> 
